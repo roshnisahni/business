@@ -1,7 +1,7 @@
 const GITHUB_CONFIG = {
     token: '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',
-    repo: 'roshnisahni/business/locales',
-    path: ''
+    repo: 'roshnisahni/business', 
+    folder: 'locales'
 };
 
 const langMap = { 
@@ -31,7 +31,7 @@ const langMap = {
     'gb': 'en', // UK -> English
     'au': 'en'  // Australia -> English
 };
-// Required for non-English characters (Hindi, etc.)
+
 function toBase64(str) {
     return btoa(unescape(encodeURIComponent(str)));
 }
@@ -41,11 +41,9 @@ async function updateGitHubFile(lang, newCache) {
         const filePath = `${lang}.json`; 
         const url = `https://api.github.com/repos/${GITHUB_CONFIG.repo}/contents/${filePath}`;
 
-        // पहले गिटहब से मौजूदा फ़ाइल का SHA टोकन लें
         const getRes = await fetch(url, { headers: { 'Authorization': `token ${GITHUB_CONFIG.token}` }});
         const fileData = await getRes.json();
 
-        // अब फ़ाइल को नए कैश डेटा के साथ गिटहब पर राइट (PUT) करें
         const putRes = await fetch(url, { 
             method: 'PUT',
             headers: { 
@@ -68,13 +66,11 @@ async function updateGitHubFile(lang, newCache) {
 async function translateFullPage(targetLang) {
     if (targetLang === 'en') return;
 
-    // हाइब्रिड सेलेक्टर: यह आपके नए data-unique को भी ढूंढेगा और पुरानी data- क्लासेस को भी!
     const elements = document.querySelectorAll('[data-unique]:not([data-no-translate]), [class*="data-"]');
 
     let localData = {};
     let newTranslationsCount = 0;
 
-    // गिटहब से लाइव डेटा फ़ेच करने का 100% सही तरीका
     try {
         const url = `https://api.github.com/repos/${GITHUB_CONFIG.repo}/contents/${targetLang}.json?t=${new Date().getTime()}`;
         const res = await fetch(url, {
@@ -90,17 +86,16 @@ async function translateFullPage(targetLang) {
             }
         } else {
             console.warn("GitHub cache file not found.");
-            return; // अगर फाइल नहीं मिली तो यहीं रुक जाओ, आगे लूप मत चलाओ!
+            return; 
         }
     } catch (e) { 
         console.error("Failed to load real-time cache due to broken JSON:", e);
-        return; // CRITICAL FIX: अगर JSON टूटा हुआ है, तो आगे मत बढ़ो! API ब्लास्ट होने से बचाओ।
+        return; 
     }
 
     console.log("--- STARTING HYBRID TRANSLATION LOOP ---");
     console.log("Total Translation Elements Found on Page:", elements.length);
 
-    // सभी एलिमेंट्स पर लूप चलाएं
     for (let el of elements) {
         let uniqueKey = el.getAttribute('data-unique')?.trim();
 
@@ -114,13 +109,11 @@ async function translateFullPage(targetLang) {
         let text = el.innerText.trim();
         if (!uniqueKey || !text || el.hasAttribute('data-translated')) continue;
 
-        // फ्लो ए: अगर की (Key) गिटहब फ़ाइल में मिल गई
         if (localData[uniqueKey]) {
             console.log(`🎉 MATCH SUCCESS! Key: "${uniqueKey}" -> Changed to: ${localData[uniqueKey]}`);
             el.innerText = localData[uniqueKey];
             el.setAttribute('data-translated', 'true');
         }
-        // फ्लो बी: अगर वर्ड फ़ाइल में नहीं मिला, तो MyMemory API से ट्रांसलेट करके गिटहब पर सेव करें
         else {
             console.log(`⚠️ NOT FOUND! Key "${uniqueKey}" missing. Requesting API...`);
             try {
@@ -142,8 +135,6 @@ async function translateFullPage(targetLang) {
 
                     localData[uniqueKey] = translated;
                     newTranslationsCount++;
-
-                    // हर 20 नए वर्ड्स के बाद गिटहब फ़ाइल को ऑटो-अपडेट करें
                     if (newTranslationsCount >= 5) {
                         console.log("Saving batch to GitHub...");
                         await updateGitHubFile(targetLang, localData);
@@ -155,8 +146,6 @@ async function translateFullPage(targetLang) {
             }
         }
     }
-
-    // लूप खत्म होने के बाद बचे हुए नए वर्ड्स को फाइनल सेव करें
     if (newTranslationsCount > 0) {
         console.log("Saving final batch to GitHub...");
         await updateGitHubFile(targetLang, localData);
@@ -206,6 +195,4 @@ function initLanguage() {
         updateDropdownUI('en');
     }
 }
-
-// आपके पुराने मक्खन जैसे वर्किंग फ्लो की तरह 'load' पर ही चलाएंगे
 window.addEventListener('load', initLanguage);
