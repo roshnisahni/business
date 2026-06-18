@@ -1,1 +1,7 @@
-{}
+{
+  "menu-home": "홈",
+  "menu-about": "회사 소개",
+  "menu-services": "Services",
+  "menu-quality": "퀄리티 정책",
+  "menu-products": "상품"
+}
