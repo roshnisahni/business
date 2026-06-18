@@ -48,14 +48,15 @@ async function updateGitHubFile(lang, newCache) {
         });
         
         const fileData = await getRes.json();
-
+ 
+        // --- CORRECTED SYNTAX ---
         const putRes = await fetch(url, { 
             method: 'PUT',
             headers: { 
                 'Authorization': `Bearer ${GITHUB_CONFIG.token}`,
                 'Accept': 'application/vnd.github.v3+json',
                 'User-Agent': 'Mozilla/5.0' 
-            }
+            }, // <--- YOU WERE MISSING THIS COMMA
             body: JSON.stringify({
                 message: `Auto-update ${lang} cache`,
                 content: toBase64(JSON.stringify(newCache, null, 2)),
