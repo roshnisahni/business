@@ -71,7 +71,7 @@ async function translateFullPage(targetLang) {
     let newTranslationsCount = 0;
 
     try {
-        const url = `https://api.github.com/repos/${GITHUB_CONFIG.repo}/contents/${targetLang}.json?t=${new Date().getTime()}`;
+        const url = `https://api.github.com/repos/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.folder}/${targetLang}.json?t=${new Date().getTime()}`;
         const res = await fetch(url, {
             headers: { 'Authorization': `token ${GITHUB_CONFIG.token}` }
         });
