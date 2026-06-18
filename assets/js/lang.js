@@ -1,6 +1,6 @@
 const GITHUB_CONFIG = {
     token: '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',
-    repo: 'roshnisahni/par_business',
+    repo: 'roshnisahni/business/locales',
     path: ''
 };
 
