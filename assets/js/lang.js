@@ -38,9 +38,8 @@ function toBase64(str) {
 
 async function updateGitHubFile(lang, newCache) {
     try {
-        const filePath = `${lang}.json`; 
-        const url = `https://api.github.com/repos/${GITHUB_CONFIG.repo}/contents/${filePath}`;
 
+        const url = `https://api.github.com/repos/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.folder}/${lang}.json`;
         const getRes = await fetch(url, { headers: { 'Authorization': `token ${GITHUB_CONFIG.token}` }});
         const fileData = await getRes.json();
 
