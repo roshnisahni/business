@@ -1,5 +1,6 @@
 const GITHUB_CONFIG = {
-    token: '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',
+    const token = localStorage.getItem('gh_token');
+    token: token,
     repo: 'roshnisahni/business', 
     folder: 'locales'
 };
