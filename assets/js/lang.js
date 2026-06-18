@@ -1,5 +1,5 @@
 const GITHUB_CONFIG = {
-    token: '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',
+    token: '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',
     repo: 'roshnisahni/business', 
     folder: 'locales'
 };
