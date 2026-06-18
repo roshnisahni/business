@@ -1,7 +1,7 @@
 const GITHUB_CONFIG = {
-    token: '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',
-    repo: 'roshnisahni/business', 
-    folder: 'locales'
+    token: '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',
+    repo: 'roshnisahni/par_business',
+    path: ''
 };
 
 const langMap = { 
@@ -31,52 +31,33 @@ const langMap = {
     'gb': 'en', // UK -> English
     'au': 'en'  // Australia -> English
 };
-
+// Required for non-English characters (Hindi, etc.)
 function toBase64(str) {
     return btoa(unescape(encodeURIComponent(str)));
 }
 
 async function updateGitHubFile(lang, newCache) {
     try {
-        const url = `https://api.github.com/repos/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.folder}/${lang}.json`;
-        const getRes = await fetch(url, { 
-          headers: { 
-                'Authorization': `Bearer ${GITHUB_CONFIG.token}`,
-                'Accept': 'application/vnd.github.v3+json', 
-                'User-Agent': 'TranslationApp'     
-         }
-        });
+        const filePath = `${lang}.json`; 
+        const url = `https://api.github.com/repos/${GITHUB_CONFIG.repo}/contents/${filePath}`;
 
+        // पहले गिटहब से मौजूदा फ़ाइल का SHA टोकन लें
+        const getRes = await fetch(url, { headers: { 'Authorization': `token ${GITHUB_CONFIG.token}` }});
         const fileData = await getRes.json();
- 
+
+        // अब फ़ाइल को नए कैश डेटा के साथ गिटहब पर राइट (PUT) करें
         const putRes = await fetch(url, { 
             method: 'PUT',
             headers: { 
-               'Authorization': `Bearer ${GITHUB_CONFIG.token}`,
-                'Accept': 'application/vnd.github.v3+json', 
-                'User-Agent': 'TranslationApp'     
-            }, 
+                'Authorization': `token ${GITHUB_CONFIG.token}`,
+                'Content-Type': 'application/json' 
+            },
             body: JSON.stringify({
                 message: `Auto-update ${lang} cache`,
                 content: toBase64(JSON.stringify(newCache, null, 2)),
                 sha: fileData.sha
             })
         });
-        const result = await putRes.json();
-
-        // If you want to see the readable text:
-        const decodedContent = atob(result.content.replace(/\n/g, ''));
-        console.log("Readable Content:", JSON.parse(decodedContent));
-
-        
-        if (!putRes.ok) {
-            console.error("🚨 GitHub Update Failed!");
-            console.error("Status:", putRes.status);
-            console.error("Error Message:", result.message);
-            console.error("Details:", result.errors); // This often contains the real reason
-        } else {
-            console.log("✅ Success!", result);
-        }
 
         console.log("GitHub API Status:", putRes.status);
     } catch (err) {
@@ -87,13 +68,15 @@ async function updateGitHubFile(lang, newCache) {
 async function translateFullPage(targetLang) {
     if (targetLang === 'en') return;
 
+    // हाइब्रिड सेलेक्टर: यह आपके नए data-unique को भी ढूंढेगा और पुरानी data- क्लासेस को भी!
     const elements = document.querySelectorAll('[data-unique]:not([data-no-translate]), [class*="data-"]');
 
     let localData = {};
     let newTranslationsCount = 0;
 
-    try {        
-        const url = `https://api.github.com/repos/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.folder}/${targetLang}.json?t=${new Date().getTime()}`;
+    // गिटहब से लाइव डेटा फ़ेच करने का 100% सही तरीका
+    try {
+        const url = `https://api.github.com/repos/${GITHUB_CONFIG.repo}/contents/${targetLang}.json?t=${new Date().getTime()}`;
         const res = await fetch(url, {
             headers: { 'Authorization': `token ${GITHUB_CONFIG.token}` }
         });
@@ -107,16 +90,17 @@ async function translateFullPage(targetLang) {
             }
         } else {
             console.warn("GitHub cache file not found.");
-            return; 
+            return; // अगर फाइल नहीं मिली तो यहीं रुक जाओ, आगे लूप मत चलाओ!
         }
     } catch (e) { 
         console.error("Failed to load real-time cache due to broken JSON:", e);
-        return; 
+        return; // CRITICAL FIX: अगर JSON टूटा हुआ है, तो आगे मत बढ़ो! API ब्लास्ट होने से बचाओ।
     }
 
     console.log("--- STARTING HYBRID TRANSLATION LOOP ---");
     console.log("Total Translation Elements Found on Page:", elements.length);
 
+    // सभी एलिमेंट्स पर लूप चलाएं
     for (let el of elements) {
         let uniqueKey = el.getAttribute('data-unique')?.trim();
 
@@ -130,11 +114,13 @@ async function translateFullPage(targetLang) {
         let text = el.innerText.trim();
         if (!uniqueKey || !text || el.hasAttribute('data-translated')) continue;
 
+        // फ्लो ए: अगर की (Key) गिटहब फ़ाइल में मिल गई
         if (localData[uniqueKey]) {
             console.log(`🎉 MATCH SUCCESS! Key: "${uniqueKey}" -> Changed to: ${localData[uniqueKey]}`);
             el.innerText = localData[uniqueKey];
             el.setAttribute('data-translated', 'true');
         }
+        // फ्लो बी: अगर वर्ड फ़ाइल में नहीं मिला, तो MyMemory API से ट्रांसलेट करके गिटहब पर सेव करें
         else {
             console.log(`⚠️ NOT FOUND! Key "${uniqueKey}" missing. Requesting API...`);
             try {
@@ -156,6 +142,8 @@ async function translateFullPage(targetLang) {
 
                     localData[uniqueKey] = translated;
                     newTranslationsCount++;
+
+                    // हर 20 नए वर्ड्स के बाद गिटहब फ़ाइल को ऑटो-अपडेट करें
                     if (newTranslationsCount >= 5) {
                         console.log("Saving batch to GitHub...");
                         await updateGitHubFile(targetLang, localData);
@@ -167,6 +155,8 @@ async function translateFullPage(targetLang) {
             }
         }
     }
+
+    // लूप खत्म होने के बाद बचे हुए नए वर्ड्स को फाइनल सेव करें
     if (newTranslationsCount > 0) {
         console.log("Saving final batch to GitHub...");
         await updateGitHubFile(targetLang, localData);
@@ -216,4 +206,6 @@ function initLanguage() {
         updateDropdownUI('en');
     }
 }
+
+// आपके पुराने मक्खन जैसे वर्किंग फ्लो की तरह 'load' पर ही चलाएंगे
 window.addEventListener('load', initLanguage);
