@@ -1,7 +1,7 @@
 const GITHUB_CONFIG = {
-    token: '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',
-    repo: 'roshnisahni/par_business',
-    path: ''
+    token: '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',
+    repo: 'roshnisahni/business', 
+    folder: 'locales'
 };
 
 const langMap = { 
