@@ -40,10 +40,11 @@ async function updateGitHubFile(lang, newCache) {
     try {
         const url = `https://api.github.com/repos/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.folder}/${lang}.json`;
         const getRes = await fetch(url, { 
-            headers: { 
-                'Authorization': `token ${GITHUB_CONFIG.token}`, 
-                'Accept': 'application/vnd.github.v3+json'       
-            }
+          headers: { 
+                'Authorization': `Bearer ${GITHUB_CONFIG.token}`,
+                'Accept': 'application/vnd.github.v3+json',
+                'User-Agent': 'Mozilla/5.0' 
+         }
         });
         
         const fileData = await getRes.json();
@@ -51,9 +52,10 @@ async function updateGitHubFile(lang, newCache) {
         const putRes = await fetch(url, { 
             method: 'PUT',
             headers: { 
-                'Authorization': `token ${GITHUB_CONFIG.token}`,
-                'Content-Type': 'application/json' 
-            },
+                'Authorization': `Bearer ${GITHUB_CONFIG.token}`,
+                'Accept': 'application/vnd.github.v3+json',
+                'User-Agent': 'Mozilla/5.0' 
+            }
             body: JSON.stringify({
                 message: `Auto-update ${lang} cache`,
                 content: toBase64(JSON.stringify(newCache, null, 2)),
