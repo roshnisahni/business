@@ -1,4 +1,4 @@
-const myToken = localStorage.getItem('gh_token');
+const myToken = 'GH_PAT;
 const GITHUB_CONFIG = {
     token: myToken,
     repo: 'roshnisahni/business', 
