@@ -64,6 +64,12 @@ async function updateGitHubFile(lang, newCache) {
             })
         });
         const result = await putRes.json();
+
+        // If you want to see the readable text:
+        const decodedContent = atob(result.content.replace(/\n/g, ''));
+        console.log("Readable Content:", JSON.parse(decodedContent));
+
+        
         if (!putRes.ok) {
             console.error("🚨 GitHub Update Failed!");
             console.error("Status:", putRes.status);
