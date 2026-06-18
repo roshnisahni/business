@@ -39,9 +39,9 @@ function toBase64(str) {
 
 async function updateGitHubFile(lang, newCache) {
     try {
-        const filePath = `${lang}.json`; 
-        const url = `https://api.github.com/repos/${GITHUB_CONFIG.repo}/contents/${filePath}`;
-
+         const filePath = `${GITHUB_CONFIG.folder}/${lang}.json`; 
+         const url = `https://api.github.com/repos/${GITHUB_CONFIG.repo}/contents/${filePath}?t=${Date.getTime()}`;
+        
         // पहले गिटहब से मौजूदा फ़ाइल का SHA टोकन लें
         const getRes = await fetch(url, { headers: { 'Authorization': `token ${GITHUB_CONFIG.token}` }});
         const fileData = await getRes.json();
@@ -76,8 +76,11 @@ async function translateFullPage(targetLang) {
     let newTranslationsCount = 0;
 
     // गिटहब से लाइव डेटा फ़ेच करने का 100% सही तरीका
-    try {
-        const url = `https://api.github.com/repos/${GITHUB_CONFIG.repo}/contents/${targetLang}.json?t=${new Date().getTime()}`;
+    try {        
+         const filePath = `${GITHUB_CONFIG.folder}/${targetLang}.json`; 
+         const url = `https://api.github.com/repos/${GITHUB_CONFIG.repo}/contents/${filePath}?t=${Date.getTime()}`;
+
+        
         const res = await fetch(url, {
             headers: { 'Authorization': `token ${GITHUB_CONFIG.token}` }
         });
