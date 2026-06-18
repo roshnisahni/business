@@ -1,6 +1,6 @@
+const myToken = localStorage.getItem('gh_token');
 const GITHUB_CONFIG = {
-    const token = localStorage.getItem('gh_token');
-    token: token,
+    token: myToken,
     repo: 'roshnisahni/business', 
     folder: 'locales'
 };
