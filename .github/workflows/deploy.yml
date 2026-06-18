@@ -1,0 +1,10 @@
+name: Deploy
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Inject Secret Token
+        run: |
+          sed -i 's/GH_PAT/${{ secrets.GH_PAT }}/g' js/lang.js
