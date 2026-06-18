@@ -63,6 +63,15 @@ async function updateGitHubFile(lang, newCache) {
                 sha: fileData.sha
             })
         });
+        const result = await putRes.json();
+        if (!putRes.ok) {
+            console.error("🚨 GitHub Update Failed!");
+            console.error("Status:", putRes.status);
+            console.error("Error Message:", result.message);
+            console.error("Details:", result.errors); // This often contains the real reason
+        } else {
+            console.log("✅ Success!", result);
+        }
 
         console.log("GitHub API Status:", putRes.status);
     } catch (err) {
