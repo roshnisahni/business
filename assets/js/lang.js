@@ -1,4 +1,4 @@
-const myToken = 'GH_PAT;
+const myToken = 'GH_PAT';
 const GITHUB_CONFIG = {
     token: myToken,
     repo: 'roshnisahni/business', 
